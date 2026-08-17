@@ -47,4 +47,11 @@ class DioAuthRepository implements AuthRepository {
       throw const AuthException('Sign-in failed');
     }
   }
+
+  @override
+  Future<bool> hasStoredSession() async {
+    final accessToken = await _tokenStorage.readAccessToken();
+
+    return accessToken != null && accessToken.isNotEmpty;
+  }
 }

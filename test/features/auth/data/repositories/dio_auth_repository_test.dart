@@ -166,5 +166,45 @@ void main() {
         expect(tokenStorage.savedAccessToken, isNull);
       },
     );
+
+    test('returns true when access token is stored', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+
+      final tokenStorage = FakeAuthTokenStorage();
+
+      await tokenStorage.saveAccessToken('example-access-token');
+
+      final repository = DioAuthRepository(dio, tokenStorage);
+
+      final hasStoredSession = await repository.hasStoredSession();
+
+      expect(hasStoredSession, isTrue);
+    });
+
+    test('returns false when no access token is stored', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+
+      final tokenStorage = FakeAuthTokenStorage();
+
+      final repository = DioAuthRepository(dio, tokenStorage);
+
+      final hasStoredSession = await repository.hasStoredSession();
+
+      expect(hasStoredSession, isFalse);
+    });
+
+    test('returns false when stored access token is empty', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+
+      final tokenStorage = FakeAuthTokenStorage();
+
+      await tokenStorage.saveAccessToken('');
+
+      final repository = DioAuthRepository(dio, tokenStorage);
+
+      final hasStoredSession = await repository.hasStoredSession();
+
+      expect(hasStoredSession, isFalse);
+    });
   });
 }

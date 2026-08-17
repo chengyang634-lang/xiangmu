@@ -4,7 +4,6 @@ import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
-import 'package:pulsedesk/app/app.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_cubit.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_state.dart';
 import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
@@ -16,8 +15,16 @@ void main() {
   testWidgets('shows required errors when sign-in form is empty', (
     tester,
   ) async {
-    await tester.pumpWidget(const PulseDeskApp());
-    await tester.pumpAndSettle();
+    final authRepository = FakeAuthRepository();
+    final cubit = SignInCubit(authRepository);
+
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(value: cubit, child: const SignInPage()),
+      ),
+    );
 
     await tester.tap(find.text('Sign in'));
     await tester.pump();
@@ -29,8 +36,16 @@ void main() {
   testWidgets('shows validation errors for invalid credentials', (
     tester,
   ) async {
-    await tester.pumpWidget(const PulseDeskApp());
-    await tester.pumpAndSettle();
+    final authRepository = FakeAuthRepository();
+    final cubit = SignInCubit(authRepository);
+
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(value: cubit, child: const SignInPage()),
+      ),
+    );
 
     final fields = find.byType(TextFormField);
 
@@ -55,6 +70,7 @@ void main() {
     );
 
     final cubit = SignInCubit(authRepository);
+
     addTearDown(cubit.close);
 
     await tester.pumpWidget(
@@ -66,7 +82,6 @@ void main() {
     final fields = find.byType(TextFormField);
 
     await tester.enterText(fields.at(0), 'user@example.com');
-
     await tester.enterText(fields.at(1), '12345678');
 
     await tester.tap(find.widgetWithText(ElevatedButton, 'Sign in'));
@@ -80,11 +95,14 @@ void main() {
     expect(button.onPressed, isNull);
 
     completer.complete();
+
     await tester.pumpAndSettle();
   });
+
   testWidgets('shows sign-in failure message in a SnackBar', (tester) async {
     final authRepository = FakeAuthRepository();
     final cubit = SignInCubit(authRepository);
+
     addTearDown(cubit.close);
 
     await tester.pumpWidget(
@@ -107,6 +125,7 @@ void main() {
   ) async {
     final authRepository = FakeAuthRepository();
     final cubit = SignInCubit(authRepository);
+
     addTearDown(cubit.close);
 
     await tester.pumpWidget(
@@ -155,9 +174,11 @@ void main() {
     final fields = find.byType(TextFormField);
 
     await tester.enterText(fields.at(0), 'user@example.com');
+
     await tester.enterText(fields.at(1), '12345678');
 
     await tester.tap(find.text('Sign in'));
+
     await tester.pumpAndSettle();
 
     expect(find.text('PulseDesk Home'), findsOneWidget);

@@ -1,10 +1,11 @@
 import 'package:pulsedesk/features/auth/domain/repositories/auth_repository.dart';
 
 class FakeAuthRepository implements AuthRepository {
-  FakeAuthRepository({this.error, this.result});
+  FakeAuthRepository({this.error, this.result, this.storedSession = false});
 
   final Object? error;
   final Future<void>? result;
+  final bool storedSession;
 
   String? receivedEmail;
   String? receivedPassword;
@@ -25,5 +26,10 @@ class FakeAuthRepository implements AuthRepository {
     if (failure != null) {
       throw failure;
     }
+  }
+
+  @override
+  Future<bool> hasStoredSession() async {
+    return storedSession;
   }
 }
