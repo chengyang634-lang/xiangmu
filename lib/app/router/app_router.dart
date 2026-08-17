@@ -13,14 +13,20 @@ import 'package:pulsedesk/features/auth/presentation/pages/auth_session_page.dar
 import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:pulsedesk/features/home/presentation/pages/home_page.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_out_cubit.dart';
+import 'package:pulsedesk/core/network/authenticated_api_client.dart';
 
-final dio = Dio(BaseOptions(baseUrl: apiBaseUrl));
+final publicDio = Dio(BaseOptions(baseUrl: apiBaseUrl));
 
 const secureStorage = FlutterSecureStorage();
 
 final authTokenStorage = SecureAuthTokenStorage(secureStorage);
 
-final authRepository = DioAuthRepository(dio, authTokenStorage);
+final authenticatedDio = createAuthenticatedApiClient(
+  baseUrl: apiBaseUrl,
+  readAccessToken: authTokenStorage.readAccessToken,
+);
+
+final authRepository = DioAuthRepository(publicDio, authTokenStorage);
 
 GoRouter createAppRouter({required AuthRepository authRepository}) {
   return GoRouter(
