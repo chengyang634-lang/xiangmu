@@ -33,4 +33,27 @@ void main() {
     expect(find.text('Enter a valid email'), findsOneWidget);
     expect(find.text('Password must be at least 8 characters'), findsOneWidget);
   });
+
+  testWidgets('shows loading and disables button while submitting', (
+    tester,
+  ) async {
+    await tester.pumpWidget(const PulseDeskApp());
+    await tester.pumpAndSettle();
+
+    final fields = find.byType(TextFormField);
+
+    await tester.enterText(fields.at(0), 'user@example.com');
+
+    await tester.enterText(fields.at(1), '12345678');
+
+    await tester.tap(find.widgetWithText(ElevatedButton, 'Sign in'));
+
+    await tester.pump();
+
+    expect(find.byType(CircularProgressIndicator), findsOneWidget);
+
+    final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
+
+    expect(button.onPressed, isNull);
+  });
 }
