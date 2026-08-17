@@ -34,6 +34,14 @@ class HomePage extends StatelessWidget {
                 const Text('PulseDesk Home'),
                 const SizedBox(height: 16),
                 ElevatedButton(
+                  onPressed: () {
+                    context.push('/tickets');
+                  },
+                  child: const Text('View tickets'),
+                ),
+
+                const SizedBox(height: 16),
+                ElevatedButton(
                   onPressed: isSubmitting
                       ? null
                       : () {

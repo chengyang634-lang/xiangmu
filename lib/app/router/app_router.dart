@@ -15,6 +15,11 @@ import 'package:pulsedesk/features/home/presentation/pages/home_page.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_out_cubit.dart';
 import 'package:pulsedesk/core/network/authenticated_api_client.dart';
 
+import 'package:pulsedesk/features/tickets/data/repositories/dio_ticket_repository.dart';
+import 'package:pulsedesk/features/tickets/domain/repositories/ticket_repository.dart';
+import 'package:pulsedesk/features/tickets/presentation/cubit/ticket_list_cubit.dart';
+import 'package:pulsedesk/features/tickets/presentation/pages/ticket_list_page.dart';
+
 final publicDio = Dio(BaseOptions(baseUrl: apiBaseUrl));
 
 const secureStorage = FlutterSecureStorage();
@@ -27,8 +32,11 @@ final authenticatedDio = createAuthenticatedApiClient(
 );
 
 final authRepository = DioAuthRepository(publicDio, authTokenStorage);
-
-GoRouter createAppRouter({required AuthRepository authRepository}) {
+final ticketRepository = DioTicketRepository(authenticatedDio);
+GoRouter createAppRouter({
+  required AuthRepository authRepository,
+  required TicketRepository ticketRepository,
+}) {
   return GoRouter(
     initialLocation: '/session',
     routes: [
@@ -61,8 +69,22 @@ GoRouter createAppRouter({required AuthRepository authRepository}) {
           );
         },
       ),
+      GoRoute(
+        path: '/tickets',
+        builder: (context, state) {
+          return BlocProvider(
+            create: (context) {
+              return TicketListCubit(ticketRepository)..loadTickets();
+            },
+            child: const TicketListPage(),
+          );
+        },
+      ),
     ],
   );
 }
 
-final appRouter = createAppRouter(authRepository: authRepository);
+final appRouter = createAppRouter(
+  authRepository: authRepository,
+  ticketRepository: ticketRepository,
+);
