@@ -3,9 +3,11 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:pulsedesk/features/auth/data/repositories/dio_auth_repository.dart';
 import 'package:pulsedesk/features/auth/domain/errors/auth_exception.dart';
 
+import '../../fakes/fake_auth_token_storage.dart';
+
 void main() {
   group('DioAuthRepository', () {
-    test('sends email and password to sign-in endpoint', () async {
+    test('sends sign-in request and saves access token', () async {
       final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
 
       RequestOptions? capturedRequest;
@@ -19,14 +21,16 @@ void main() {
               Response(
                 requestOptions: options,
                 statusCode: 200,
-                data: {'accessToken': 'token'},
+                data: {'accessToken': 'example-access-token'},
               ),
             );
           },
         ),
       );
 
-      final repository = DioAuthRepository(dio);
+      final tokenStorage = FakeAuthTokenStorage();
+
+      final repository = DioAuthRepository(dio, tokenStorage);
 
       await repository.signIn(email: 'user@example.com', password: '12345678');
 
@@ -38,6 +42,8 @@ void main() {
         'email': 'user@example.com',
         'password': '12345678',
       });
+
+      expect(tokenStorage.savedAccessToken, 'example-access-token');
     });
 
     test('throws AuthException with backend message on failure', () async {
@@ -61,10 +67,12 @@ void main() {
         ),
       );
 
-      final repository = DioAuthRepository(dio);
+      final tokenStorage = FakeAuthTokenStorage();
 
-      expect(
-        () => repository.signIn(
+      final repository = DioAuthRepository(dio, tokenStorage);
+
+      await expectLater(
+        repository.signIn(
           email: 'user@example.com',
           password: 'wrong-password',
         ),
@@ -76,6 +84,8 @@ void main() {
           ),
         ),
       );
+
+      expect(tokenStorage.savedAccessToken, isNull);
     });
 
     test('throws fallback AuthException when backend has no message', () async {
@@ -99,11 +109,12 @@ void main() {
         ),
       );
 
-      final repository = DioAuthRepository(dio);
+      final tokenStorage = FakeAuthTokenStorage();
 
-      expect(
-        () =>
-            repository.signIn(email: 'user@example.com', password: '12345678'),
+      final repository = DioAuthRepository(dio, tokenStorage);
+
+      await expectLater(
+        repository.signIn(email: 'user@example.com', password: '12345678'),
         throwsA(
           isA<AuthException>().having(
             (error) => error.message,
@@ -112,6 +123,48 @@ void main() {
           ),
         ),
       );
+
+      expect(tokenStorage.savedAccessToken, isNull);
     });
+
+    test(
+      'throws AuthException when success response has no access token',
+      () async {
+        final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+
+        dio.interceptors.add(
+          InterceptorsWrapper(
+            onRequest: (options, handler) {
+              handler.resolve(
+                Response(
+                  requestOptions: options,
+                  statusCode: 200,
+                  data: {
+                    'user': {'id': 'user_123'},
+                  },
+                ),
+              );
+            },
+          ),
+        );
+
+        final tokenStorage = FakeAuthTokenStorage();
+
+        final repository = DioAuthRepository(dio, tokenStorage);
+
+        await expectLater(
+          repository.signIn(email: 'user@example.com', password: '12345678'),
+          throwsA(
+            isA<AuthException>().having(
+              (error) => error.message,
+              'message',
+              'Invalid sign-in response',
+            ),
+          ),
+        );
+
+        expect(tokenStorage.savedAccessToken, isNull);
+      },
+    );
   });
 }
