@@ -1,11 +1,15 @@
-import 'package:flutter/material.dart';
-import 'package:flutter_test/flutter_test.dart';
-import 'package:pulsedesk/app/app.dart';
-import 'package:flutter_bloc/flutter_bloc.dart';
-import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_cubit.dart';
-import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
-import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_state.dart';
 import 'dart:async';
+
+import 'package:flutter/material.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:flutter_test/flutter_test.dart';
+import 'package:go_router/go_router.dart';
+import 'package:pulsedesk/app/app.dart';
+import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_cubit.dart';
+import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_state.dart';
+import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:pulsedesk/features/home/presentation/pages/home_page.dart';
+
 import 'features/auth/fakes/fake_auth_repository.dart';
 
 void main() {
@@ -45,7 +49,10 @@ void main() {
   ) async {
     final completer = Completer<void>();
 
-    final authRepository = FakeAuthRepository(result: completer.future);
+    final authRepository = FakeAuthRepository(
+      result: completer.future,
+      error: Exception(),
+    );
 
     final cubit = SignInCubit(authRepository);
     addTearDown(cubit.close);
@@ -115,5 +122,44 @@ void main() {
     expect(find.text('Sign-in failed'), findsOneWidget);
 
     expect(find.byType(SnackBar), findsOneWidget);
+  });
+
+  testWidgets('navigates to home after successful sign-in', (tester) async {
+    final authRepository = FakeAuthRepository();
+    final cubit = SignInCubit(authRepository);
+
+    addTearDown(cubit.close);
+
+    final router = GoRouter(
+      initialLocation: '/sign-in',
+      routes: [
+        GoRoute(
+          path: '/sign-in',
+          builder: (context, state) {
+            return BlocProvider.value(value: cubit, child: const SignInPage());
+          },
+        ),
+        GoRoute(
+          path: '/home',
+          builder: (context, state) {
+            return const HomePage();
+          },
+        ),
+      ],
+    );
+
+    addTearDown(router.dispose);
+
+    await tester.pumpWidget(MaterialApp.router(routerConfig: router));
+
+    final fields = find.byType(TextFormField);
+
+    await tester.enterText(fields.at(0), 'user@example.com');
+    await tester.enterText(fields.at(1), '12345678');
+
+    await tester.tap(find.text('Sign in'));
+    await tester.pumpAndSettle();
+
+    expect(find.text('PulseDesk Home'), findsOneWidget);
   });
 }

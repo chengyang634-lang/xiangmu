@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:go_router/go_router.dart';
 
 import '../cubit/sign_in_cubit.dart';
 import '../cubit/sign_in_state.dart';
@@ -27,15 +28,18 @@ class _SignInPageState extends State<SignInPage> {
   Widget build(BuildContext context) {
     return BlocConsumer<SignInCubit, SignInState>(
       listener: (context, state) {
-        if (state.status != SignInStatus.failure) {
+        if (state.status == SignInStatus.success) {
+          context.go('/home');
           return;
         }
 
-        final message = state.errorMessage ?? 'Sign-in failed';
+        if (state.status == SignInStatus.failure) {
+          final message = state.errorMessage ?? 'Sign-in failed';
 
-        ScaffoldMessenger.of(
-          context,
-        ).showSnackBar(SnackBar(content: Text(message)));
+          ScaffoldMessenger.of(
+            context,
+          ).showSnackBar(SnackBar(content: Text(message)));
+        }
       },
       builder: (context, state) {
         final isSubmitting = state.status == SignInStatus.submitting;
