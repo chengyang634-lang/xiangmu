@@ -19,6 +19,8 @@ import 'package:pulsedesk/features/tickets/data/repositories/dio_ticket_reposito
 import 'package:pulsedesk/features/tickets/domain/repositories/ticket_repository.dart';
 import 'package:pulsedesk/features/tickets/presentation/cubit/ticket_list_cubit.dart';
 import 'package:pulsedesk/features/tickets/presentation/pages/ticket_list_page.dart';
+import 'package:pulsedesk/features/tickets/presentation/cubit/ticket_detail_cubit.dart';
+import 'package:pulsedesk/features/tickets/presentation/pages/ticket_detail_page.dart';
 
 final publicDio = Dio(BaseOptions(baseUrl: apiBaseUrl));
 
@@ -77,6 +79,19 @@ GoRouter createAppRouter({
               return TicketListCubit(ticketRepository)..loadTickets();
             },
             child: const TicketListPage(),
+          );
+        },
+      ),
+      GoRoute(
+        path: '/tickets/:ticketId',
+        builder: (context, state) {
+          final ticketId = state.pathParameters['ticketId']!;
+
+          return BlocProvider(
+            create: (context) {
+              return TicketDetailCubit(ticketRepository)..loadTicket(ticketId);
+            },
+            child: TicketDetailPage(ticketId: ticketId),
           );
         },
       ),

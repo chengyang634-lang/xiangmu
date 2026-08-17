@@ -4,6 +4,7 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/ticket.dart';
 import '../cubit/ticket_list_cubit.dart';
 import '../cubit/ticket_list_state.dart';
+import 'package:go_router/go_router.dart';
 
 class TicketListPage extends StatelessWidget {
   const TicketListPage({super.key});
@@ -56,6 +57,9 @@ class TicketListPage extends StatelessWidget {
 
                     return Card(
                       child: ListTile(
+                        onTap: () {
+                          context.push('/tickets/${ticket.id}');
+                        },
                         title: Text(ticket.title),
                         subtitle: Text(
                           '${_statusLabel(ticket.status)}'

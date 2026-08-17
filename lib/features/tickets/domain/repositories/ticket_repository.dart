@@ -1,5 +1,8 @@
 import '../entities/ticket.dart';
+import '../entities/ticket_details.dart';
 
 abstract class TicketRepository {
   Future<List<Ticket>> getTickets();
+
+  Future<TicketDetails> getTicket(String ticketId);
 }
