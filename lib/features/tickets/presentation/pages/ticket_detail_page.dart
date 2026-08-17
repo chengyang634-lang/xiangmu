@@ -14,7 +14,22 @@ class TicketDetailPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(title: const Text('Ticket details')),
-      body: BlocBuilder<TicketDetailCubit, TicketDetailState>(
+      body: BlocConsumer<TicketDetailCubit, TicketDetailState>(
+        listenWhen: (previous, current) {
+          return previous.statusUpdateStatus != current.statusUpdateStatus;
+        },
+        listener: (context, state) {
+          if (state.statusUpdateStatus == TicketStatusUpdateStatus.failure) {
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(
+                content: Text(
+                  state.statusUpdateErrorMessage ??
+                      'Failed to update ticket status',
+                ),
+              ),
+            );
+          }
+        },
         builder: (context, state) {
           switch (state.status) {
             case TicketDetailStatus.initial:
@@ -58,8 +73,42 @@ class TicketDetailPage extends StatelessWidget {
 
                   const SizedBox(height: 24),
 
-                  Text('Status: ${_statusLabel(ticket.status)}'),
+                  Text('Status', style: Theme.of(context).textTheme.labelLarge),
                   const SizedBox(height: 8),
+
+                  DropdownButton<TicketStatus>(
+                    value: ticket.status,
+                    isExpanded: true,
+                    onChanged:
+                        state.statusUpdateStatus ==
+                            TicketStatusUpdateStatus.submitting
+                        ? null
+                        : (status) {
+                            if (status == null) {
+                              return;
+                            }
+
+                            context.read<TicketDetailCubit>().updateStatus(
+                              status,
+                            );
+                          },
+                    items: TicketStatus.values
+                        .map((status) {
+                          return DropdownMenuItem<TicketStatus>(
+                            value: status,
+                            child: Text(_statusLabel(status)),
+                          );
+                        })
+                        .toList(growable: false),
+                  ),
+
+                  if (state.statusUpdateStatus ==
+                      TicketStatusUpdateStatus.submitting) ...[
+                    const SizedBox(height: 8),
+                    const LinearProgressIndicator(),
+                  ],
+
+                  const SizedBox(height: 16),
 
                   Text('Priority: ${_priorityLabel(ticket.priority)}'),
                   const SizedBox(height: 8),

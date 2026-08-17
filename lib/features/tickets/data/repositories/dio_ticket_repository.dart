@@ -80,44 +80,7 @@ class DioTicketRepository implements TicketRepository {
     try {
       final response = await _dio.get<dynamic>('/api/tickets/$ticketId');
 
-      final data = response.data;
-
-      if (data is! Map) {
-        throw const TicketException('Invalid ticket detail response');
-      }
-
-      final id = data['id'];
-      final title = data['title'];
-      final description = data['description'];
-      final status = data['status'];
-      final priority = data['priority'];
-      final createdAt = data['createdAt'];
-
-      if (id is! String ||
-          id.isEmpty ||
-          title is! String ||
-          title.isEmpty ||
-          description is! String ||
-          status is! String ||
-          priority is! String ||
-          createdAt is! String) {
-        throw const TicketException('Invalid ticket detail response');
-      }
-
-      final parsedCreatedAt = DateTime.tryParse(createdAt);
-
-      if (parsedCreatedAt == null) {
-        throw const TicketException('Invalid ticket detail response');
-      }
-
-      return TicketDetails(
-        id: id,
-        title: title,
-        description: description,
-        status: _parseStatus(status),
-        priority: _parsePriority(priority),
-        createdAt: parsedCreatedAt,
-      );
+      return _parseTicketDetails(response.data);
     } on TicketException {
       rethrow;
     } on DioException catch (error) {
@@ -132,6 +95,87 @@ class DioTicketRepository implements TicketRepository {
       }
 
       throw const TicketException('Failed to load ticket');
+    }
+  }
+
+  @override
+  Future<TicketDetails> updateTicketStatus({
+    required String ticketId,
+    required TicketStatus status,
+  }) async {
+    try {
+      final response = await _dio.patch<dynamic>(
+        '/api/tickets/$ticketId/status',
+        data: {'status': _statusToApiValue(status)},
+      );
+
+      return _parseTicketDetails(response.data);
+    } on TicketException {
+      rethrow;
+    } on DioException catch (error) {
+      final data = error.response?.data;
+
+      if (data is Map) {
+        final message = data['message'];
+
+        if (message is String && message.isNotEmpty) {
+          throw TicketException(message);
+        }
+      }
+
+      throw const TicketException('Failed to update ticket status');
+    }
+  }
+
+  TicketDetails _parseTicketDetails(dynamic data) {
+    if (data is! Map) {
+      throw const TicketException('Invalid ticket detail response');
+    }
+
+    final id = data['id'];
+    final title = data['title'];
+    final description = data['description'];
+    final status = data['status'];
+    final priority = data['priority'];
+    final createdAt = data['createdAt'];
+
+    if (id is! String ||
+        id.isEmpty ||
+        title is! String ||
+        title.isEmpty ||
+        description is! String ||
+        status is! String ||
+        priority is! String ||
+        createdAt is! String) {
+      throw const TicketException('Invalid ticket detail response');
+    }
+
+    final parsedCreatedAt = DateTime.tryParse(createdAt);
+
+    if (parsedCreatedAt == null) {
+      throw const TicketException('Invalid ticket detail response');
+    }
+
+    return TicketDetails(
+      id: id,
+      title: title,
+      description: description,
+      status: _parseStatus(status),
+      priority: _parsePriority(priority),
+      createdAt: parsedCreatedAt,
+    );
+  }
+
+  String _statusToApiValue(TicketStatus status) {
+    switch (status) {
+      case TicketStatus.open:
+        return 'open';
+      case TicketStatus.inProgress:
+        return 'in_progress';
+      case TicketStatus.resolved:
+        return 'resolved';
+      case TicketStatus.closed:
+        return 'closed';
     }
   }
 
