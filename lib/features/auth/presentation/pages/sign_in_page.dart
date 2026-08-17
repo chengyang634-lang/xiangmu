@@ -13,6 +13,8 @@ class SignInPage extends StatefulWidget {
 
 class _SignInPageState extends State<SignInPage> {
   final _formKey = GlobalKey<FormState>();
+  final _emailController = TextEditingController();
+  final _passwordController = TextEditingController();
 
   @override
   Widget build(BuildContext context) {
@@ -42,6 +44,7 @@ class _SignInPageState extends State<SignInPage> {
                     Text('PulseDesk'),
                     SizedBox(height: 24),
                     TextFormField(
+                      controller: _emailController,
                       decoration: InputDecoration(
                         labelText: 'Email',
                         border: OutlineInputBorder(),
@@ -66,6 +69,7 @@ class _SignInPageState extends State<SignInPage> {
                     ),
                     SizedBox(height: 16),
                     TextFormField(
+                      controller: _passwordController,
                       decoration: const InputDecoration(
                         labelText: 'Password',
                         border: OutlineInputBorder(),
@@ -86,14 +90,17 @@ class _SignInPageState extends State<SignInPage> {
                     ElevatedButton(
                       onPressed: isSubmitting
                           ? null
-                          : () {
+                          : () async {
                               final isValid = _formKey.currentState!.validate();
 
                               if (!isValid) {
                                 return;
                               }
 
-                              context.read<SignInCubit>().startSubmitting();
+                              context.read<SignInCubit>().signIn(
+                                email: _emailController.text.trim(),
+                                password: _passwordController.text,
+                              );
                             },
                       child: isSubmitting
                           ? const SizedBox(
