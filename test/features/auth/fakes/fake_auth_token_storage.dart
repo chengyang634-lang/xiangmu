@@ -12,4 +12,9 @@ class FakeAuthTokenStorage implements AuthTokenStorage {
   Future<String?> readAccessToken() async {
     return savedAccessToken;
   }
+
+  @override
+  Future<void> deleteAccessToken() async {
+    savedAccessToken = null;
+  }
 }

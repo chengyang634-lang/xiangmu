@@ -18,4 +18,9 @@ class SecureAuthTokenStorage implements AuthTokenStorage {
   Future<String?> readAccessToken() {
     return _storage.read(key: _accessTokenKey);
   }
+
+  @override
+  Future<void> deleteAccessToken() {
+    return _storage.delete(key: _accessTokenKey);
+  }
 }
