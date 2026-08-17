@@ -16,7 +16,18 @@ class _SignInPageState extends State<SignInPage> {
 
   @override
   Widget build(BuildContext context) {
-    return BlocBuilder<SignInCubit, SignInState>(
+    return BlocConsumer<SignInCubit, SignInState>(
+      listener: (context, state) {
+        if (state.status != SignInStatus.failure) {
+          return;
+        }
+
+        final message = state.errorMessage ?? 'Sign-in failed';
+
+        ScaffoldMessenger.of(
+          context,
+        ).showSnackBar(SnackBar(content: Text(message)));
+      },
       builder: (context, state) {
         final isSubmitting = state.status == SignInStatus.submitting;
         return Scaffold(

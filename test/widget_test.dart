@@ -1,6 +1,10 @@
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:pulsedesk/app/app.dart';
+import 'package:flutter_bloc/flutter_bloc.dart';
+import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_cubit.dart';
+import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
+import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_state.dart';
 
 void main() {
   testWidgets('shows required errors when sign-in form is empty', (
@@ -55,5 +59,44 @@ void main() {
     final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
 
     expect(button.onPressed, isNull);
+  });
+  testWidgets('shows sign-in failure message in a SnackBar', (tester) async {
+    final cubit = SignInCubit();
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(value: cubit, child: const SignInPage()),
+      ),
+    );
+
+    cubit.markFailure('Invalid email or password');
+
+    await tester.pump();
+
+    expect(find.text('Invalid email or password'), findsOneWidget);
+
+    expect(find.byType(SnackBar), findsOneWidget);
+  });
+
+  testWidgets('shows fallback message when sign-in failure has no message', (
+    tester,
+  ) async {
+    final cubit = SignInCubit();
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(value: cubit, child: const SignInPage()),
+      ),
+    );
+
+    cubit.emit(const SignInState(status: SignInStatus.failure));
+
+    await tester.pump();
+
+    expect(find.text('Sign-in failed'), findsOneWidget);
+
+    expect(find.byType(SnackBar), findsOneWidget);
   });
 }
