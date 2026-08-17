@@ -13,4 +13,9 @@ class SecureAuthTokenStorage implements AuthTokenStorage {
   Future<void> saveAccessToken(String accessToken) {
     return _storage.write(key: _accessTokenKey, value: accessToken);
   }
+
+  @override
+  Future<String?> readAccessToken() {
+    return _storage.read(key: _accessTokenKey);
+  }
 }
