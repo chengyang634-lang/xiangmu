@@ -4,6 +4,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import '../../domain/entities/ticket.dart';
 import '../cubit/ticket_detail_cubit.dart';
 import '../cubit/ticket_detail_state.dart';
+import '../cubit/ticket_comments_cubit.dart';
+import '../cubit/ticket_comments_state.dart';
 
 class TicketDetailPage extends StatelessWidget {
   const TicketDetailPage({required this.ticketId, super.key});
@@ -114,6 +116,81 @@ class TicketDetailPage extends StatelessWidget {
                   const SizedBox(height: 8),
 
                   Text('Created: ${ticket.createdAt.toLocal()}'),
+
+                  const SizedBox(height: 32),
+
+                  Text(
+                    'Conversation',
+                    style: Theme.of(context).textTheme.titleMedium,
+                  ),
+
+                  const SizedBox(height: 12),
+
+                  BlocBuilder<TicketCommentsCubit, TicketCommentsState>(
+                    builder: (context, commentsState) {
+                      switch (commentsState.status) {
+                        case TicketCommentsStatus.initial:
+                        case TicketCommentsStatus.loading:
+                          return const Center(
+                            child: Padding(
+                              padding: EdgeInsets.all(16),
+                              child: CircularProgressIndicator(),
+                            ),
+                          );
+
+                        case TicketCommentsStatus.failure:
+                          return Column(
+                            crossAxisAlignment: CrossAxisAlignment.start,
+                            children: [
+                              Text(
+                                commentsState.errorMessage ??
+                                    'Failed to load ticket comments',
+                              ),
+                              const SizedBox(height: 8),
+                              ElevatedButton(
+                                onPressed: () {
+                                  context
+                                      .read<TicketCommentsCubit>()
+                                      .loadComments(ticketId);
+                                },
+                                child: const Text('Retry comments'),
+                              ),
+                            ],
+                          );
+
+                        case TicketCommentsStatus.success:
+                          if (commentsState.comments.isEmpty) {
+                            return const Text('No comments yet');
+                          }
+
+                          return Column(
+                            children: commentsState.comments
+                                .map((comment) {
+                                  return Card(
+                                    child: ListTile(
+                                      title: Text(comment.authorName),
+                                      subtitle: Column(
+                                        crossAxisAlignment:
+                                            CrossAxisAlignment.start,
+                                        children: [
+                                          const SizedBox(height: 4),
+                                          Text(comment.body),
+                                          const SizedBox(height: 8),
+                                          Text(
+                                            comment.createdAt
+                                                .toLocal()
+                                                .toString(),
+                                          ),
+                                        ],
+                                      ),
+                                    ),
+                                  );
+                                })
+                                .toList(growable: false),
+                          );
+                      }
+                    },
+                  ),
                 ],
               );
           }
