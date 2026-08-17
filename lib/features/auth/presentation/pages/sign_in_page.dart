@@ -9,11 +9,7 @@ class SignInPage extends StatelessWidget {
       body: Center(
         child: Column(
           mainAxisSize: MainAxisSize.min,
-          children: [
-            Text('PulseDesk'),
-            SizedBox(height: 8),
-            Text('Sign in'),
-          ],
+          children: [Text('PulseDesk'), SizedBox(height: 8), Text('Sign in')],
         ),
       ),
     );
