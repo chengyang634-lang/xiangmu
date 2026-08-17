@@ -14,6 +14,9 @@ import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:pulsedesk/features/home/presentation/pages/home_page.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_out_cubit.dart';
 import 'package:pulsedesk/core/network/authenticated_api_client.dart';
+import 'package:pulsedesk/features/profile/data/repositories/dio_current_user_repository.dart';
+import 'package:pulsedesk/features/profile/domain/repositories/current_user_repository.dart';
+import 'package:pulsedesk/features/profile/presentation/cubit/current_user_cubit.dart';
 
 final publicDio = Dio(BaseOptions(baseUrl: apiBaseUrl));
 
@@ -27,8 +30,11 @@ final authenticatedDio = createAuthenticatedApiClient(
 );
 
 final authRepository = DioAuthRepository(publicDio, authTokenStorage);
-
-GoRouter createAppRouter({required AuthRepository authRepository}) {
+final currentUserRepository = DioCurrentUserRepository(authenticatedDio);
+GoRouter createAppRouter({
+  required AuthRepository authRepository,
+  required CurrentUserRepository currentUserRepository,
+}) {
   return GoRouter(
     initialLocation: '/session',
     routes: [
@@ -55,8 +61,16 @@ GoRouter createAppRouter({required AuthRepository authRepository}) {
       GoRoute(
         path: '/home',
         builder: (context, state) {
-          return BlocProvider(
-            create: (context) => SignOutCubit(authRepository),
+          return MultiBlocProvider(
+            providers: [
+              BlocProvider(create: (context) => SignOutCubit(authRepository)),
+              BlocProvider(
+                create: (context) {
+                  return CurrentUserCubit(currentUserRepository)
+                    ..loadCurrentUser();
+                },
+              ),
+            ],
             child: const HomePage(),
           );
         },
@@ -65,4 +79,7 @@ GoRouter createAppRouter({required AuthRepository authRepository}) {
   );
 }
 
-final appRouter = createAppRouter(authRepository: authRepository);
+final appRouter = createAppRouter(
+  authRepository: authRepository,
+  currentUserRepository: currentUserRepository,
+);
