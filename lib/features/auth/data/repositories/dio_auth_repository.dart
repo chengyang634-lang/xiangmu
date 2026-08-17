@@ -54,4 +54,9 @@ class DioAuthRepository implements AuthRepository {
 
     return accessToken != null && accessToken.isNotEmpty;
   }
+
+  @override
+  Future<void> signOut() {
+    return _tokenStorage.deleteAccessToken();
+  }
 }

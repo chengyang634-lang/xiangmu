@@ -4,7 +4,6 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/auth_session_cubit.dart';
 import 'package:pulsedesk/features/auth/presentation/pages/auth_session_page.dart';
-import 'package:pulsedesk/features/home/presentation/pages/home_page.dart';
 
 import '../../fakes/fake_auth_repository.dart';
 
@@ -31,7 +30,9 @@ void main() {
         GoRoute(
           path: '/home',
           builder: (context, state) {
-            return const HomePage();
+            return const Scaffold(
+              body: Center(child: Text('Home Destination')),
+            );
           },
         ),
       ],
@@ -44,7 +45,7 @@ void main() {
     await cubit.checkSession();
     await tester.pumpAndSettle();
 
-    expect(find.text('PulseDesk Home'), findsOneWidget);
+    expect(find.text('Home Destination'), findsOneWidget);
   });
   testWidgets('navigates to sign-in when session is unauthenticated', (
     tester,

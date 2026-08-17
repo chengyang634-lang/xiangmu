@@ -21,16 +21,31 @@ void main() {
 
       expect(savedToken, 'example-access-token');
     });
-  });
-  test('reads saved access token', () async {
-    const secureStorage = FlutterSecureStorage();
 
-    final tokenStorage = SecureAuthTokenStorage(secureStorage);
+    test('reads saved access token', () async {
+      const secureStorage = FlutterSecureStorage();
 
-    await tokenStorage.saveAccessToken('example-access-token');
+      final tokenStorage = SecureAuthTokenStorage(secureStorage);
 
-    final accessToken = await tokenStorage.readAccessToken();
+      await tokenStorage.saveAccessToken('example-access-token');
 
-    expect(accessToken, 'example-access-token');
+      final accessToken = await tokenStorage.readAccessToken();
+
+      expect(accessToken, 'example-access-token');
+    });
+
+    test('deletes saved access token', () async {
+      const secureStorage = FlutterSecureStorage();
+
+      final tokenStorage = SecureAuthTokenStorage(secureStorage);
+
+      await tokenStorage.saveAccessToken('example-access-token');
+
+      await tokenStorage.deleteAccessToken();
+
+      final accessToken = await tokenStorage.readAccessToken();
+
+      expect(accessToken, isNull);
+    });
   });
 }

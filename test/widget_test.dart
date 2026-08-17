@@ -7,7 +7,6 @@ import 'package:go_router/go_router.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_cubit.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_state.dart';
 import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
-import 'package:pulsedesk/features/home/presentation/pages/home_page.dart';
 
 import 'features/auth/fakes/fake_auth_repository.dart';
 
@@ -161,7 +160,9 @@ void main() {
         GoRoute(
           path: '/home',
           builder: (context, state) {
-            return const HomePage();
+            return const Scaffold(
+              body: Center(child: Text('Home Destination')),
+            );
           },
         ),
       ],
@@ -181,6 +182,6 @@ void main() {
 
     await tester.pumpAndSettle();
 
-    expect(find.text('PulseDesk Home'), findsOneWidget);
+    expect(find.text('Home Destination'), findsOneWidget);
   });
 }

@@ -206,5 +206,20 @@ void main() {
 
       expect(hasStoredSession, isFalse);
     });
+    test('deletes stored access token when signing out', () async {
+      final dio = Dio(BaseOptions(baseUrl: 'https://example.test'));
+
+      final tokenStorage = FakeAuthTokenStorage();
+
+      await tokenStorage.saveAccessToken('example-access-token');
+
+      final repository = DioAuthRepository(dio, tokenStorage);
+
+      await repository.signOut();
+
+      final accessToken = await tokenStorage.readAccessToken();
+
+      expect(accessToken, isNull);
+    });
   });
 }

@@ -12,6 +12,7 @@ import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_cubit.dart';
 import 'package:pulsedesk/features/auth/presentation/pages/auth_session_page.dart';
 import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:pulsedesk/features/home/presentation/pages/home_page.dart';
+import 'package:pulsedesk/features/auth/presentation/cubit/sign_out_cubit.dart';
 
 final dio = Dio(BaseOptions(baseUrl: apiBaseUrl));
 
@@ -48,7 +49,10 @@ GoRouter createAppRouter({required AuthRepository authRepository}) {
       GoRoute(
         path: '/home',
         builder: (context, state) {
-          return const HomePage();
+          return BlocProvider(
+            create: (context) => SignOutCubit(authRepository),
+            child: const HomePage(),
+          );
         },
       ),
     ],
