@@ -5,6 +5,8 @@ import 'package:flutter_bloc/flutter_bloc.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_cubit.dart';
 import 'package:pulsedesk/features/auth/presentation/pages/sign_in_page.dart';
 import 'package:pulsedesk/features/auth/presentation/cubit/sign_in_state.dart';
+import 'dart:async';
+import 'features/auth/fakes/fake_auth_repository.dart';
 
 void main() {
   testWidgets('shows required errors when sign-in form is empty', (
@@ -41,8 +43,18 @@ void main() {
   testWidgets('shows loading and disables button while submitting', (
     tester,
   ) async {
-    await tester.pumpWidget(const PulseDeskApp());
-    await tester.pumpAndSettle();
+    final completer = Completer<void>();
+
+    final authRepository = FakeAuthRepository(result: completer.future);
+
+    final cubit = SignInCubit(authRepository);
+    addTearDown(cubit.close);
+
+    await tester.pumpWidget(
+      MaterialApp(
+        home: BlocProvider.value(value: cubit, child: const SignInPage()),
+      ),
+    );
 
     final fields = find.byType(TextFormField);
 
@@ -59,9 +71,13 @@ void main() {
     final button = tester.widget<ElevatedButton>(find.byType(ElevatedButton));
 
     expect(button.onPressed, isNull);
+
+    completer.complete();
+    await tester.pumpAndSettle();
   });
   testWidgets('shows sign-in failure message in a SnackBar', (tester) async {
-    final cubit = SignInCubit();
+    final authRepository = FakeAuthRepository();
+    final cubit = SignInCubit(authRepository);
     addTearDown(cubit.close);
 
     await tester.pumpWidget(
@@ -82,7 +98,8 @@ void main() {
   testWidgets('shows fallback message when sign-in failure has no message', (
     tester,
   ) async {
-    final cubit = SignInCubit();
+    final authRepository = FakeAuthRepository();
+    final cubit = SignInCubit(authRepository);
     addTearDown(cubit.close);
 
     await tester.pumpWidget(
